@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Baptis } from 'src/baptis/entities/bapti.entity';
+import { Role } from 'src/common/type';
 import { KelompokMurid } from 'src/murid/entities/murid.entity';
 import {
   Column,
@@ -12,8 +13,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Gender } from '../type/gender.enum';
-import { Role } from '../type/role.enum';
+import { Gender } from '../../common/type/gender.enum';
 
 @Entity()
 export class Jemaat {

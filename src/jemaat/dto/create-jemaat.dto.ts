@@ -8,8 +8,8 @@ import {
   IsString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender } from '../type/gender.enum';
-import { Role } from '../type/role.enum';
+import { Gender } from '../../common/type/gender.enum';
+import { Role } from 'src/common/type';
 
 export class CreateJemaatDto {
   @ApiProperty()

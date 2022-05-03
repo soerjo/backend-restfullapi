@@ -3,12 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  CreateJemaatDto,
+  ResponseCreateDto,
+  ResponseDto,
+  UpdateJemaatDto,
+} from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PageDto, PageMetaDto, PageOptionDto } from 'src/common/dto';
 import { Repository } from 'typeorm';
-import { CreateJemaatDto } from './dto/create-jemaat.dto';
-import { ResponseCreateDto } from './dto/response-create.dto';
-import { ResponseDto } from './dto/response.dto';
-import { UpdateJemaatDto } from './dto/update-jemaat.dto';
 import { Jemaat } from './entities/jemaat.entity';
 
 @Injectable()
@@ -30,8 +33,20 @@ export class JemaatService {
     return new ResponseDto({ data, status: 201 });
   }
 
-  async findAll() {
-    const data: Jemaat[] = await this.jemaatRepo.find();
+  async findAll(pageOptions: PageOptionDto) {
+    const queryBuilder = this.jemaatRepo.createQueryBuilder('jemaat');
+
+    queryBuilder
+      .orderBy('jemaat.createdAt', pageOptions.order)
+      .skip(pageOptions.skip)
+      .take(pageOptions.take);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptions });
+
+    const data = new PageDto(entities, pageMetaDto);
     return new ResponseDto({ data });
   }
 
