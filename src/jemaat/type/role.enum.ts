@@ -1,0 +1,8 @@
+export enum Role {
+  JEMAAT = 'JEMAAT',
+  PELAYAN = 'PELAYAAN',
+  PEMBIMBING = 'PEMBIMBING',
+  PEKERJA = 'PEKERJA',
+  LEADER = 'LEADER',
+  ADMIN = 'ADMIN',
+}

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    container_name: 'db_mysql'
+    image: mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db_mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: 'db_gkkd'
+      MYSQL_USER: 'soerjo'
+      MYSQL_PASSWORD: 'soerjo1234'
+      MYSQL_ROOT_PASSWORD: 'root1234'
