@@ -1,4 +1,5 @@
 export enum Role {
+  PUBLIC = 'PUBLIC',
   JEMAAT = 'JEMAAT',
   PELAYAN = 'PELAYAAN',
   PEMBIMBING = 'PEMBIMBING',

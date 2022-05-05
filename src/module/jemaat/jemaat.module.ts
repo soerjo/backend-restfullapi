@@ -4,9 +4,13 @@ import { JemaatController } from './jemaat.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { JemaatRepository } from './jemaat.repository';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([JemaatRepository], 'MYSQL_DB')],
+  imports: [
+    JwtModule.register({}),
+    TypeOrmModule.forFeature([JemaatRepository], 'MYSQL_DB'),
+  ],
   controllers: [JemaatController],
   providers: [
     JemaatRepository,

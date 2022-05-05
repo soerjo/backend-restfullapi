@@ -4,6 +4,6 @@ import { MuridController } from './murid.controller';
 
 @Module({
   controllers: [MuridController],
-  providers: [MuridService]
+  providers: [MuridService],
 })
 export class MuridModule {}
