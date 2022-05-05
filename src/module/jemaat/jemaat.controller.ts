@@ -13,6 +13,7 @@ import { JemaatService } from './jemaat.service';
 import { CreateJemaatDto } from './dto';
 import { UpdateJemaatDto } from './dto';
 import { PageOptionDto } from 'src/common/dto';
+import { QueryGetDto } from './dto/query-get.dto';
 
 @ApiTags('jemaat')
 @Controller('jemaat')
@@ -25,8 +26,13 @@ export class JemaatController {
   }
 
   @Get()
-  findAll(@Query() pageOptions: PageOptionDto) {
-    return this.jemaatService.findAll(pageOptions);
+  findAll(@Query() query: QueryGetDto) {
+    const { search, orderBy, word, ...pageOptions } = query;
+    return this.jemaatService.findAll(pageOptions as PageOptionDto, {
+      word,
+      search,
+      orderBy,
+    });
   }
 
   @Get(':id')

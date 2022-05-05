@@ -8,8 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender } from '../../common/type/gender.enum';
-import { Role } from 'src/common/type';
+import { Gender, Role } from 'src/common/type';
 
 export class CreateJemaatDto {
   @ApiProperty()
@@ -66,11 +65,13 @@ export class CreateJemaatDto {
 
   @ApiPropertyOptional()
   @IsString()
+  @Transform((val) => val.value.toLowerCase())
   @IsOptional()
   blesscomn?: string;
 
   @ApiPropertyOptional()
   @IsString()
+  @Transform((val) => val.value.toLowerCase())
   @IsOptional()
   wilayah_pelayanan?: string;
 }

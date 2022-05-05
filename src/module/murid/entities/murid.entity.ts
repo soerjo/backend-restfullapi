@@ -1,4 +1,4 @@
-import { Jemaat } from 'src/jemaat/entities/jemaat.entity';
+import { Jemaat } from 'src/module/jemaat/entities/jemaat.entity';
 import {
   Column,
   CreateDateColumn,

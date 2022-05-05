@@ -1,5 +1,5 @@
-import { Jemaat } from 'src/jemaat/entities/jemaat.entity';
-import { Role } from 'src/jemaat/type/role.enum';
+import { Role } from 'src/common/type';
+import { Jemaat } from 'src/module/jemaat/entities/jemaat.entity';
 import {
   Column,
   CreateDateColumn,

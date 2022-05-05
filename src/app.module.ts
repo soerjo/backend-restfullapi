@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { JemaatModule } from './jemaat/jemaat.module';
 import { AuthModule } from './auth/auth.module';
 import { DbModule } from './database/db.module';
 import { ConfigModule } from '@nestjs/config';
-import { BaptisModule } from './baptis/baptis.module';
-import { MuridModule } from './murid/murid.module';
+import { BaptisModule } from './module/baptis/baptis.module';
+import { JemaatModule } from './module/jemaat/jemaat.module';
+import { MuridModule } from './module/murid/murid.module';
 
 @Module({
   imports: [
