@@ -1,33 +1,44 @@
+import { Exclude } from 'class-transformer';
 import { Role } from 'src/common/type';
-import { Jemaat } from 'src/module/jemaat/entities/jemaat.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class user {
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  username: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ enum: Role, type: 'enum' })
-  role: Role;
+  @Column('simple-array', { array: true })
+  role: Role[];
 
-  @OneToOne(() => Jemaat, (jemaat) => jemaat.id, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  jemaat: Jemaat;
+  @Exclude()
+  @Column()
+  password: string;
 
+  @Exclude()
+  @Column({ default: Role.ADMIN })
+  createdBy: string;
+
+  @Exclude()
+  @Column({ nullable: true })
+  updatedBy: string;
+
+  @Exclude()
   @CreateDateColumn()
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn()
   updatedAt: Date;
 }

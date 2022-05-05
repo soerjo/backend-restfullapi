@@ -8,7 +8,7 @@ export class ResponseDto<T> implements IResponseDto<T> {
   status = 200;
   message = 'success';
   data: T;
-  constructor(obj: IResponseDto<T>) {
+  constructor(obj?: IResponseDto<T>) {
     Object.assign(this, obj);
   }
 }

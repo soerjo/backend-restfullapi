@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MuridController } from './murid.controller';
-import { MuridService } from './murid.service';
+import { MuridController } from '../murid.controller';
+import { MuridService } from '../murid.service';
 
 describe('MuridController', () => {
   let controller: MuridController;

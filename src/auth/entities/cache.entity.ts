@@ -7,12 +7,9 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Cache {
+export class CacheEntity {
   @PrimaryColumn()
   userid: string;
-
-  @Column()
-  email: string;
 
   @CreateDateColumn()
   createdAt: Date;

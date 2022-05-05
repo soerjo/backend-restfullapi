@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JemaatController } from './jemaat.controller';
-import { JemaatService } from './jemaat.service';
+import { JemaatController } from '../jemaat.controller';
+import { JemaatService } from '../jemaat.service';
 
 describe('JemaatController', () => {
   let controller: JemaatController;
