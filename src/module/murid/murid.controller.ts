@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { MuridService } from './murid.service';
 import { CreateMuridDto } from './dto/create-murid.dto';
 import { UpdateMuridDto } from './dto/update-murid.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('murid')
 @Controller('murid')
 export class MuridController {
   constructor(private readonly muridService: MuridService) {}

@@ -3,19 +3,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateJemaatDto } from './dto/create-jemaat.dto';
-import { ResponseCreateDto } from './dto/response-create.dto';
-import { ResponseDto } from './dto/response.dto';
-import { UpdateJemaatDto } from './dto/update-jemaat.dto';
+import {
+  CreateJemaatDto,
+  ResponseCreateDto,
+  ResponseDto,
+  UpdateJemaatDto,
+} from './dto';
+import { PageOptionDto } from 'src/common/dto';
 import { Jemaat } from './entities/jemaat.entity';
+import { JemaatRepository } from './jemaat.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JemaatQueryDto } from './dto/query-get.dto';
 
 @Injectable()
 export class JemaatService {
   constructor(
-    @InjectRepository(Jemaat, 'MYSQL_DB')
-    private jemaatRepo: Repository<Jemaat>,
+    @InjectRepository(JemaatRepository, 'MYSQL_DB')
+    private jemaatRepo: JemaatRepository,
   ) {}
 
   async create(createJemaatDto: CreateJemaatDto) {
@@ -30,9 +34,18 @@ export class JemaatService {
     return new ResponseDto({ data, status: 201 });
   }
 
-  async findAll() {
-    const data: Jemaat[] = await this.jemaatRepo.find();
-    return new ResponseDto({ data });
+  async findAll(pageOptions: PageOptionDto, queryJemaat: JemaatQueryDto) {
+    const { word, search, orderBy } = queryJemaat;
+    try {
+      return await this.jemaatRepo.pagination(
+        pageOptions,
+        word,
+        search as keyof Jemaat,
+        orderBy as keyof Jemaat,
+      );
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async findOne(id: string) {

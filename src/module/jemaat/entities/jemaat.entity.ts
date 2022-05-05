@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { Baptis } from 'src/baptis/entities/bapti.entity';
-import { KelompokMurid } from 'src/murid/entities/murid.entity';
+import { Baptis } from 'src/module/baptis/entities/baptis.entity';
+import { Gender, Role } from 'src/common/type';
 import {
   Column,
   CreateDateColumn,
@@ -12,8 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Gender } from '../type/gender.enum';
-import { Role } from '../type/role.enum';
+import { KelompokMurid } from 'src/module/murid/entities/murid.entity';
 
 @Entity()
 export class Jemaat {
@@ -63,9 +62,9 @@ export class Jemaat {
 
   @Exclude()
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @Exclude()
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 }

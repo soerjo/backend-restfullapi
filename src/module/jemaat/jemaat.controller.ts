@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { JemaatService } from './jemaat.service';
-import { CreateJemaatDto } from './dto/create-jemaat.dto';
-import { UpdateJemaatDto } from './dto/update-jemaat.dto';
+import { CreateJemaatDto } from './dto';
+import { UpdateJemaatDto } from './dto';
+import { PageOptionDto } from 'src/common/dto';
+import { QueryGetDto } from './dto/query-get.dto';
 
 @ApiTags('jemaat')
 @Controller('jemaat')
@@ -23,8 +26,13 @@ export class JemaatController {
   }
 
   @Get()
-  findAll() {
-    return this.jemaatService.findAll();
+  findAll(@Query() query: QueryGetDto) {
+    const { search, orderBy, word, ...pageOptions } = query;
+    return this.jemaatService.findAll(pageOptions as PageOptionDto, {
+      word,
+      search,
+      orderBy,
+    });
   }
 
   @Get(':id')
