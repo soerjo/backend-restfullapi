@@ -13,7 +13,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/common/decorator';
 import { Roles } from 'src/common/decorator/roles.decorator';
-import { AccessJwtGuard, RefreshJwtGuard } from 'src/common/guard';
+import { RefreshJwtGuard } from 'src/common/guard';
 import { Role } from 'src/common/type';
 import { AuthService } from './auth.service';
 import { LoginDto, PayloadJwtDto, RecoverPasswordDto } from './dto';
