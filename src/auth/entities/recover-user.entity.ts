@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity()
 export class RecoverUser {
   @PrimaryColumn()
-  userid: string;
+  email: string;
 
   @Column()
   hash: string;

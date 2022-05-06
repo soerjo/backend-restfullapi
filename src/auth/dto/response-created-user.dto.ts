@@ -1,6 +1,6 @@
 import { CreateAuthDto } from './create-auth.dto';
 
-export class ResponseCreatedUser {
+export class ReturnUser {
   email: string;
   username: string;
 

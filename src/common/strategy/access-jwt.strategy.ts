@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthService } from 'src/auth/auth.service';
 import { PayloadJwtDto } from 'src/auth/dto';
+import { CacheEntity } from 'src/auth/entities';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AccessJwtStrategy extends PassportStrategy(
@@ -11,19 +13,21 @@ export class AccessJwtStrategy extends PassportStrategy(
   'access-jwt',
 ) {
   private logger = new Logger(AccessJwtStrategy.name);
-
   constructor(
-    private readonly authService: AuthService,
+    @InjectRepository(CacheEntity, 'MYSQL_DB')
+    private readonly cacheRepo: Repository<CacheEntity>,
     configService: ConfigService,
   ) {
     super({
+      ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configService.get('KEY_ACCESS_TOKEN'),
     });
   }
 
-  async validate(payload: PayloadJwtDto) {
-    const getUser = await this.authService.findCache(payload.userid);
+  async validate(args: any) {
+    const payload = new PayloadJwtDto(args);
+    const getUser = await this.cacheRepo.findOne({ userid: payload.userid });
     if (!getUser) return null;
 
     return payload;

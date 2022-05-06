@@ -1,57 +1,32 @@
-import { PageDto, PageMetaDto, PageOptionDto } from 'src/common/dto';
+import {
+  PageDto,
+  PageMetaDto,
+  PageOptionDto,
+  SearchQueryDto,
+} from 'src/common/dto';
 import { EntityRepository, Repository } from 'typeorm';
-import { ResponseDto } from './dto';
 import { Jemaat } from './entities/jemaat.entity';
-import { KeyofJemaat } from '../../common/type';
-
-const someKey: KeyofJemaat[] = [
-  'alamat',
-  'baptis',
-  'blesscomn',
-  'email',
-  'id',
-  'jenis_kelamin',
-  'kelompok_murid',
-  'nama_lengkap',
-  'nama_panggilan',
-  'role',
-  'tanggal_lahir',
-  'tanggal_lahir_baru',
-  'tempat_lahir',
-  'wilayah_pelayanan',
-  'created_at',
-];
+import { keyofJemaat } from './type/keyofjemaat';
 
 @EntityRepository(Jemaat)
 export class JemaatRepository extends Repository<Jemaat> {
-  async pagination(
-    options: PageOptionDto,
-    word?: string,
-    search?: keyof Jemaat,
-    orderBy: keyof Jemaat = 'created_at',
-  ) {
-    if (!someKey.includes(search) && search != undefined)
-      throw new Error(`${search} is not in jemaat property`);
-    if (!someKey.includes(orderBy) && orderBy != undefined)
-      throw new Error(`${orderBy} is not in jemaat property`);
+  async pagination(pageOptions: PageOptionDto, searchQuery: SearchQueryDto) {
+    const { order, skip, take } = pageOptions;
+    const { orderBy, search, word } = searchQuery;
 
     const queryBuilder = this.createQueryBuilder('jemaat');
+    queryBuilder.skip(skip).take(take);
 
-    queryBuilder
-      .orderBy(`jemaat.${orderBy}`, options.order)
-      .skip(options.skip)
-      .take(options.take);
+    if (keyofJemaat.some((val) => val === orderBy))
+      queryBuilder.orderBy(`jemaat.${orderBy}`, order);
 
-    if (search) {
+    if (keyofJemaat.some((val) => val === search) && word)
       queryBuilder.where(`jemaat.${search} LIKE :s`, { s: `%${word}%` });
-    }
 
     const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptions: options });
-
-    const data = new PageDto(entities, pageMetaDto);
-    return new ResponseDto({ data });
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptions });
+    return new PageDto(entities, pageMetaDto);
   }
 }

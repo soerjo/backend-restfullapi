@@ -7,22 +7,17 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { JemaatService } from './jemaat.service';
 import { CreateJemaatDto } from './dto';
 import { UpdateJemaatDto } from './dto';
 import { PageOptionDto } from 'src/common/dto';
-import { QueryGetDto } from './dto/query-get.dto';
-import { AccessJwtGuard } from 'src/common/guard';
-import { Roles } from 'src/common/decorator';
-import { Role } from 'src/common/type';
+import { QueryGetDto, SearchQueryDto } from '../../common/dto/query-get.dto';
 
 @ApiTags('jemaat')
-@ApiBearerAuth()
 @Controller('jemaat')
-@UseGuards(AccessJwtGuard)
+// @UseGuards(AccessJwtGuard)
 export class JemaatController {
   constructor(private readonly jemaatService: JemaatService) {}
 
@@ -33,12 +28,10 @@ export class JemaatController {
 
   @Get()
   findAll(@Query() query: QueryGetDto) {
-    const { search, orderBy, word, ...pageOptions } = query;
-    return this.jemaatService.findAll(pageOptions as PageOptionDto, {
-      word,
-      search,
-      orderBy,
-    });
+    return this.jemaatService.findAll(
+      query as PageOptionDto,
+      query as SearchQueryDto,
+    );
   }
 
   @Get(':id')

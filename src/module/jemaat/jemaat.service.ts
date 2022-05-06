@@ -3,17 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  CreateJemaatDto,
-  ResponseCreateDto,
-  ResponseDto,
-  UpdateJemaatDto,
-} from './dto';
-import { PageOptionDto } from 'src/common/dto';
+import { CreateJemaatDto, ResponseCreateDto, UpdateJemaatDto } from './dto';
+import { PageOptionDto, ResponseDto, SearchQueryDto } from 'src/common/dto';
 import { Jemaat } from './entities/jemaat.entity';
 import { JemaatRepository } from './jemaat.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JemaatQueryDto } from './dto/query-get.dto';
 
 @Injectable()
 export class JemaatService {
@@ -34,18 +28,9 @@ export class JemaatService {
     return new ResponseDto({ data, status: 201 });
   }
 
-  async findAll(pageOptions: PageOptionDto, queryJemaat: JemaatQueryDto) {
-    const { word, search, orderBy } = queryJemaat;
-    try {
-      return await this.jemaatRepo.pagination(
-        pageOptions,
-        word,
-        search as keyof Jemaat,
-        orderBy as keyof Jemaat,
-      );
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
+  async findAll(pageOptions: PageOptionDto, queryJemaat: SearchQueryDto) {
+    const data = await this.jemaatRepo.pagination(pageOptions, queryJemaat);
+    return new ResponseDto({ data });
   }
 
   async findOne(id: string) {

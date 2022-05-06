@@ -5,15 +5,16 @@ import { ConfigModule } from '@nestjs/config';
 import { BaptisModule } from './module/baptis/baptis.module';
 import { JemaatModule } from './module/jemaat/jemaat.module';
 import { MuridModule } from './module/murid/murid.module';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessJwtStrategy } from './common/strategy/access-jwt.strategy';
-import { RolesGuard } from './common/guard/role.guard';
 import { RefreshJwtStrategy } from './common/strategy';
-import { AccessJwtGuard } from './common/guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User, CacheEntity, RecoverUser } from './auth/entities';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.development.env' }),
+    TypeOrmModule.forFeature([User, CacheEntity, RecoverUser], 'MYSQL_DB'),
     JemaatModule,
     AuthModule,
     DbModule,
@@ -26,14 +27,6 @@ import { AccessJwtGuard } from './common/guard';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: AccessJwtGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
   ],
 })

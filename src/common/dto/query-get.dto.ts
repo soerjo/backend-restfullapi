@@ -2,11 +2,11 @@ import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { PageOptionDto } from 'src/common/dto';
 
-export class JemaatQueryDto {
+export class SearchQueryDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  orderBy?: string;
+  orderBy?: string = 'createdAt';
 
   @ApiPropertyOptional()
   @IsString()
@@ -21,6 +21,6 @@ export class JemaatQueryDto {
 }
 
 export class QueryGetDto extends IntersectionType(
-  JemaatQueryDto,
+  SearchQueryDto,
   PageOptionDto,
 ) {}

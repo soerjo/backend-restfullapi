@@ -11,34 +11,37 @@ import {
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  public id: string;
 
   @Column()
-  username: string;
+  public username: string;
 
   @Column({ unique: true })
-  email: string;
+  public email: string;
 
   @Column('simple-array', { array: true })
-  role: Role[];
+  public role: Role[];
 
   @Exclude()
   @Column()
-  password: string;
+  public password: string;
 
   @Exclude()
   @Column({ default: Role.ADMIN })
-  createdBy: string;
+  public createdBy: string;
 
   @Exclude()
   @Column({ nullable: true })
-  updatedBy: string;
+  public updatedBy: string;
 
   @Exclude()
   @CreateDateColumn()
-  createdAt: Date;
+  public createdAt: Date;
 
   @Exclude()
   @UpdateDateColumn()
-  updatedAt: Date;
+  public updatedAt: Date;
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor() {}
 }

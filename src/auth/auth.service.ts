@@ -12,7 +12,7 @@ import {
   LoginDto,
   PayloadJwtDto,
   RecoverPasswordDto,
-  ResponseCreatedUser,
+  ReturnUser,
   UpdateAuthDto,
 } from './dto';
 import { User } from './entities/user.entity';
@@ -20,8 +20,15 @@ import { hashSync, genSaltSync, compareSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CacheEntity } from './entities/cache.entity';
-import { ResponseDto } from 'src/module/jemaat/dto';
 import { RecoverUser } from './entities/recover-user.entity';
+import {
+  PageDto,
+  PageMetaDto,
+  PageOptionDto,
+  ResponseDto,
+  SearchQueryDto,
+} from 'src/common/dto';
+import { keyofUser } from './type/keyofuser.interface';
 
 const link = `localhost:3000`;
 
@@ -39,56 +46,75 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async create(createAuthDto: CreateAuthDto, user?: PayloadJwtDto) {
-    const checkEmail = await this.getUserByMail(createAuthDto.email);
-    if (checkEmail)
+  async handleCrate(createAuthDto: CreateAuthDto) {
+    if (await this.checkEmail(createAuthDto.email))
       throw new BadRequestException(
         `email: ${createAuthDto.email} has already registed!`,
       );
 
-    const newUser = this.userRepo.create(createAuthDto);
-    newUser.role = [Role.JEMAAT];
-    newUser.password = hashSync(createAuthDto.password, genSaltSync());
-    if (user) newUser.createdBy = user.username;
-    newUser.createdBy = Role.ADMIN;
-
-    const savedUser = await this.userRepo.save(newUser);
+    const savedUser = await this.userRepo.save({
+      ...createAuthDto,
+      password: hashSync(createAuthDto.password, genSaltSync()),
+      role: [Role.JEMAAT],
+      createdBy: Role.ADMIN,
+    });
 
     return new ResponseDto({
       status: 201,
-      message: `user ${createAuthDto.username} success created!`,
-      data: new ResponseCreatedUser(savedUser),
+      message: `success created!`,
+      data: new ReturnUser(savedUser),
     });
   }
 
-  async getUserByMail(email: string) {
-    return await this.userRepo.findOne({ email });
-  }
-
-  async loginLocal(loginDto: LoginDto) {
-    const getUser = await this.userRepo.findOne({ email: loginDto.email });
-    if (!getUser)
-      throw new ForbiddenException(
-        `user with email: ${loginDto.email} is not found`,
-      );
-
-    const comparePassword = compareSync(loginDto.password, getUser.password);
-    if (!comparePassword) throw new ForbiddenException(`password is false`);
-
-    const payload = new PayloadJwtDto({
-      userid: getUser.id,
-      username: getUser.username,
-      role: getUser.role,
-    });
+  async handleLogin(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+    const validateUser = await this.validateUser(email, password);
+    const generateJwt = await this.generateJwt(validateUser);
 
     return new ResponseDto({
-      data: await this.generateJwt(payload),
       message: 'success login',
+      data: { ...generateJwt, user: validateUser },
     });
+  }
+
+  async handleRemove(id: string) {
+    const getUser = await this.userRepo.findOne({ id });
+    if (!getUser) throw new BadRequestException(`user id: ${id} is not found`);
+    await this.userRepo.remove(getUser);
+
+    return new ResponseDto({
+      message: `user ${getUser.username} removed!`,
+    });
+  }
+
+  async handleLogout(payload: PayloadJwtDto) {
+    const getCache = await this.cacheRepo.findOne({ userid: payload.userid });
+    if (!getCache) throw new ForbiddenException();
+    await this.cacheRepo.remove(getCache);
+  }
+
+  async validateUser(email: string, password: string) {
+    const getUser = await this.userRepo.findOne({ email: email });
+    if (!getUser)
+      throw new ForbiddenException(`user with email: ${email} is not found`);
+
+    const comparePassword = compareSync(password, getUser.password);
+    if (!comparePassword) throw new ForbiddenException(`password is false`);
+
+    return {
+      role: getUser.role,
+      username: getUser.username,
+      userid: getUser.id,
+    };
+  }
+
+  async checkEmail(email: string): Promise<boolean> {
+    const getEmail = await this.userRepo.findOne({ email });
+
+    return getEmail ? true : false;
   }
 
   async generateJwt(payload: PayloadJwtDto) {
-    this.logger.log({ ...payload });
     const access_token: string = this.jwtService.sign(
       { ...payload },
       {
@@ -104,103 +130,112 @@ export class AuthService {
       },
     );
 
-    await this.saveCache(payload);
+    await this.cacheRepo.save(payload);
+
     return { access_token, refresh_token };
   }
 
-  async findCache(userid: string) {
-    return await this.cacheRepo.findOne({ userid });
-  }
-
-  async saveCache(payload: PayloadJwtDto) {
-    await this.cacheRepo.save(payload);
-  }
-
-  async removeCache(payload: PayloadJwtDto) {
-    const getCache = await this.findCache(payload.userid);
-    if (!getCache) return false;
-
-    await this.cacheRepo.remove(getCache);
-    return true;
-  }
-
   async getAccessToken(payload: PayloadJwtDto) {
+    const generateJwt = await this.generateJwt(payload);
+
     return new ResponseDto({
-      data: await this.generateJwt(payload),
+      data: generateJwt,
       message: 'success get token',
     });
   }
 
-  async getAllUser() {
-    const users = await this.userRepo.find();
-    return new ResponseDto({
-      data: users,
-    });
+  async handleGetUsers(
+    pageOptions: PageOptionDto,
+    searchQuery: SearchQueryDto,
+  ) {
+    const { order, skip, take } = pageOptions;
+    const { orderBy, search, word } = searchQuery;
+
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+    queryBuilder.skip(skip).take(take);
+
+    if (keyofUser.some((val) => val === orderBy))
+      queryBuilder.orderBy(`user.${orderBy}`, order);
+
+    if (keyofUser.some((val) => val === search) && word)
+      queryBuilder.where(`user.${search} LIKE :s`, { s: `%${word}%` });
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptions });
+    const data = new PageDto(entities, pageMetaDto);
+
+    return new ResponseDto({ data });
   }
 
-  async update(id: string, updateAuthDto: UpdateAuthDto, user?: PayloadJwtDto) {
+  async handleGetUser(id: string) {
+    const users = await this.userRepo.findOne(id);
+
+    return new ResponseDto({ data: users });
+  }
+
+  async handleUpdateUser(id: string, updateAuthDto: UpdateAuthDto) {
     const getUser = await this.userRepo.findOne({ id });
     if (!getUser) throw new BadRequestException(`user id: ${id} is not found`);
 
-    const createUser = this.userRepo.create({
+    const updateUser = await this.userRepo.save({
       ...getUser,
       ...updateAuthDto,
     });
 
-    if (user) createUser.updatedBy = user.username;
-    createUser.updatedBy = Role.ADMIN;
-    const updateUser = await this.userRepo.save(createUser);
-
     return new ResponseDto({
       status: 201,
-      message: `user ${getUser.username} success updated!`,
-      data: new ResponseCreatedUser(updateUser),
+      message: `success updated!`,
+      data: new ReturnUser(updateUser),
     });
   }
 
   async handleForgotPassword(email: string) {
-    const checkEmail = await this.getUserByMail(email);
-    if (!checkEmail)
+    if (await this.checkEmail(email))
       throw new BadRequestException(`user email: ${email} is not found`);
 
     //send nodemailer to user email direct to updateuser url
     //jwt must be in the query url in email link.
 
-    const hashing = hashSync(email, genSaltSync());
-    await this.recoverUserRepo.save({ userid: checkEmail.id, hash: hashing });
+    const hash = hashSync(email, genSaltSync());
+    await this.recoverUserRepo.save({ email, hash });
 
     return new ResponseDto({
       message: `hit the link to do recover`,
       data: {
-        link: `link: ${link}/auth/recover?hash=${hashing}`,
-        hash: hashing,
+        link: `link: ${link}/auth/recover?hash=${hash}`,
+        hash: hash,
       },
     });
   }
 
-  async recoverUser(hash: string) {
-    const checkRequestRecover = await this.recoverUserRepo.findOne({ hash });
-    if (!checkRequestRecover) throw new ForbiddenException();
+  async handleRecoverUser(hash: string) {
+    const getRecoverUser = await this.recoverUserRepo.findOne({ hash });
+    if (!getRecoverUser) throw new ForbiddenException();
 
     const getUser = await this.userRepo.findOne({
-      id: checkRequestRecover.userid,
+      email: getRecoverUser.email,
     });
 
     return new ResponseDto({
       message: `Put method to link: ${link}/auth/recover/${hash}`,
       data: {
         link: `${link}/auth/recover/${hash}`,
-        user_data: new ResponseCreatedUser(getUser),
+        user_data: new ReturnUser(getUser),
       },
     });
   }
 
-  async recoverPassword(hash: string, recoverPasswordDto: RecoverPasswordDto) {
-    const checkRequestRecover = await this.recoverUserRepo.findOne({ hash });
-    if (!checkRequestRecover) throw new ForbiddenException();
+  async hanldeRecoverPassword(
+    hash: string,
+    recoverPasswordDto: RecoverPasswordDto,
+  ) {
+    const getRecoverUser = await this.recoverUserRepo.findOne({ hash });
+    if (!getRecoverUser) throw new ForbiddenException();
 
     const getUser = await this.userRepo.findOne({
-      id: checkRequestRecover.userid,
+      email: getRecoverUser.email,
     });
 
     const updateUser = await this.userRepo.save({
@@ -211,26 +246,8 @@ export class AuthService {
 
     return new ResponseDto({
       status: 201,
-      message: `user ${getUser.username} success updated!`,
-      data: new ResponseCreatedUser(updateUser),
+      message: `success updated!`,
+      data: new ReturnUser(updateUser),
     });
-  }
-
-  async remove(id: string) {
-    const checkRequestRecover = await this.userRepo.findOne({ id });
-    if (!checkRequestRecover)
-      throw new BadRequestException(`user id: ${id} is not found`);
-    await this.userRepo.remove(checkRequestRecover);
-
-    return new ResponseDto({
-      message: `user ${checkRequestRecover.username} success removed!`,
-    });
-  }
-
-  async logout(payload?: PayloadJwtDto) {
-    const getCache = await this.cacheRepo.findOne({ userid: payload?.userid });
-    if (!getCache) throw new ForbiddenException();
-    await this.cacheRepo.remove(getCache);
-    return new ResponseDto();
   }
 }
